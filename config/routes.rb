@@ -10,6 +10,6 @@ Rails.application.routes.draw do
 
   resources :users, only: [:index, :show]
 
-  get "/auth/:provider/callback", to: "users#login"
-  
+  get "/auth/:provider/callback", to: "sessions#login"
+
 end
