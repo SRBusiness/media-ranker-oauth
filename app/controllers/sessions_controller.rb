@@ -1,6 +1,6 @@
 class SessionsController < ApplicationController
-  def login_form
-  end
+  # def login_form
+  # end
   def login
     auth_hash = request.env['omniauth.auth']
     if auth_hash['uid']
