@@ -25,7 +25,7 @@ class WorksController < ApplicationController
     @media_category = @work.category
 
     if @login_user
-      @work.owner = @login_user.id
+      @work.user_id = @login_user.id
       if @work.save
         flash[:status] = :success
         flash[:result_text] = "Successfully created #{@media_category.singularize} #{@work.id}"
@@ -48,7 +48,7 @@ class WorksController < ApplicationController
   end
 
   def edit
-    if @login_user.id != @work.owner
+    if @login_user.id != @work.user_id
       flash[:status] = :failure
       flash[:result_text] = "You cannot edit a work you do not own"
       redirect_to works_path
@@ -70,7 +70,7 @@ class WorksController < ApplicationController
   end
 
   def destroy
-    if @login_user.id != @work.owner
+    if @login_user.id != @work.user_id
       flash[:status] = :failure
       flash[:result_text] = "You cannot delete a work you do not own"
       redirect_to works_path
