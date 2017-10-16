@@ -3,6 +3,9 @@
   <p>Created by: <%= @work.creator %></p>
   <p>Published: <%= @work.publication_year %></p>
   <p><%= @work.description %></p>
+  <p>
+    <%= @work.owner%>
+  </p>
   <section>
     <%= link_to "Back to media ranks", root_path, class: "button" %>
     <%= link_to "Edit", edit_work_path(@work), class: "button" %>

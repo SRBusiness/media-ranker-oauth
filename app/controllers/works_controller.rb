@@ -4,6 +4,7 @@ class WorksController < ApplicationController
   before_action :category_from_work, except: [:root, :index, :new, :create]
 
   skip_before_action :require_login, only: [:root]
+
   def root
     @albums = Work.best_albums
     @books = Work.best_books
@@ -22,15 +23,23 @@ class WorksController < ApplicationController
   def create
     @work = Work.new(media_params)
     @media_category = @work.category
-    if @work.save
-      flash[:status] = :success
-      flash[:result_text] = "Successfully created #{@media_category.singularize} #{@work.id}"
-      redirect_to work_path(@work)
+
+    if @login_user
+      @work.owner = @login_user.id
+      if @work.save
+        flash[:status] = :success
+        flash[:result_text] = "Successfully created #{@media_category.singularize} #{@work.id}"
+        redirect_to work_path(@work)
+      else
+        flash[:status] = :failure
+        flash[:result_text] = "Could not create #{@media_category.singularize}"
+        flash[:messages] = @work.errors.messages
+        render :new, status: :bad_request
+      end
     else
       flash[:status] = :failure
-      flash[:result_text] = "Could not create #{@media_category.singularize}"
-      flash[:messages] = @work.errors.messages
-      render :new, status: :bad_request
+      flash[:result_text] = "You must be logged in to create a work"
+      redirect_to root_path
     end
   end
 
@@ -39,6 +48,11 @@ class WorksController < ApplicationController
   end
 
   def edit
+    if @login_user.id != @work.owner
+      flash[:status] = :failure
+      flash[:result_text] = "You cannot edit a work you do not own"
+      redirect_to works_path
+    end
   end
 
   def update
@@ -56,10 +70,16 @@ class WorksController < ApplicationController
   end
 
   def destroy
-    @work.destroy
-    flash[:status] = :success
-    flash[:result_text] = "Successfully destroyed #{@media_category.singularize} #{@work.id}"
-    redirect_to root_path
+    if @login_user.id != @work.owner
+      flash[:status] = :failure
+      flash[:result_text] = "You cannot delete a work you do not own"
+      redirect_to works_path
+    else
+      @work.destroy
+      flash[:status] = :success
+      flash[:result_text] = "Successfully destroyed #{@media_category.singularize} #{@work.id}"
+      redirect_to root_path
+    end
   end
 
   def upvote
@@ -91,7 +111,7 @@ class WorksController < ApplicationController
 
 private
   def media_params
-    params.require(:work).permit(:title, :category, :creator, :description, :publication_year)
+    params.require(:work).permit(:title, :category, :creator, :description, :publication_year, :owner)
   end
 
   def category_from_work
